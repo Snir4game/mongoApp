@@ -5,6 +5,76 @@ import account from "../models/account.js";
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Category from "../models/category.js";
+import Auth from './auth.js'
+import product from "../models/product.js";
+
+Router.get('/getProductsByCategoryId/:id',Auth,async(request,response)=>{
+    const cid=request.params.id;
+    product.find({associateCategory:cid})
+    .populate('associateAccount')
+    .populate('associateCategory')
+    .then(allProduct=>{return response.status(200).json({
+        message:allProduct
+        });
+    })
+    .catch(error =>{
+        return response.status(500).json({
+            message:error.message
+            });
+        })
+})
+Router.get('/getAllProducts',Auth,async(request,response)=>{
+    product.find()
+    .populate('associateAccount')
+    .populate('associateCategory')
+    .then(allProduct=>{return response.status(200).json({
+        message:allProduct
+        });
+    })
+    .catch(error =>{
+        return response.status(500).json({
+            message:error.message
+            });
+        })
+})
+
+
+Router.post('/addProduct',Auth, async(request,response)=>{
+
+
+    const {
+        associateCategory,
+        productName,
+        productPrice,
+        productDescription,
+        productImage,
+        productStatus
+    }=request.body;
+
+    const id=mongoose.Types.ObjectId();
+    const _product=new product({
+        _id:id,
+        associateAccount:request.user._id,
+        associateCategory:associateCategory,
+        productName:productName,
+        productPrice:productPrice,
+        productDescripyion:productDescription,
+        productImage:productImage,
+        productStatus:productStatus
+    });
+    _product.save()
+    .then(product_added=>{
+        return response.status(200).json({
+            message:product_added
+        });
+    })
+.catch(error =>{
+    return response.status(500).json({
+        message:error.message
+        });
+    })
+})
+
 
 Router.get('/getCategories',async(request,response) => {
     //OP 1
